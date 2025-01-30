@@ -1,7 +1,7 @@
 # NACHA ACH parser
 This simple sattic HTML website with some JavaScript will parser your NACHA ACH payment instruction files. No dependencies were used in creating this project.
 
-You can try it [here](https://imretomosvari.github.io/ach-parser-web/) with this completely fake file:
+You can try it [here](https://imretomosvari.github.io/ach-parser-web/) with this completely fake domestic file:
 
 ```
 101 77665544311223344552401290600A094101SOME COOL BANK         MY COOL BANK           00000000
@@ -15,6 +15,31 @@ You can try it [here](https://imretomosvari.github.io/ach-parser-web/) with this
 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
 9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
 ```
+Or with this IAT one:
+```
+101 77665544311223344552401290600A094101SOME COOL BANK         MY COOL BANK           00000000
+5225                FF3               US1122334455IATAsdf dsa pUSDUSD250131   1456003450000001
+6272342342340010             000001403611122233344455                         1233211235964010
+710WEB000000000000000000                      Mr Doctor                                5964010
+711MY BANK                            34 E 22th Street                                 5964010
+712New York*NY\                       US*10010\                                        5964010
+713SOME COOL BANK                     01233211233                         US           5964010
+714Another BANK NAME                  01554433221                         US           5964010
+71566554433       2234 Johns Ave.                                                      5964010
+716MyCity*TN\                         US*33214\                                        5964010
+717Recipient Name*12/11 Livingstone Rd\                                            00015964010
+717CityName*NSW*2011*VN\                                                           00025964010
+718TargetBank, Hanoi.                 01322334                            AU       00035964010
+822500001100263245680000000140360000000000001122334455                         456003450000001
+9000001000003000081079295334053000099999777000000000000                                       
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
+```
+
 
 I advise not to input real files on the github hosted version, but you can download the index.html, and run it in your own browser from your computer.
 
