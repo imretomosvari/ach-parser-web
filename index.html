@@ -39,7 +39,7 @@
         }
 
         .row .field {
-            flex: 1;
+            flex: auto;
             min-width: 200px;
             margin-right: 10px;
         }
@@ -433,11 +433,11 @@
                 } else if (recordType === '7') {
                     const header = document.createElement('h4');
                     header.textContent = 'Addenda Record';
-                    groupContent.appendChild(header);
                     
                     const addendaType = line.substring(1, 3);
                     
                     if (addendaType === '10') {
+                        header.textContent = 'IAT First Addenda Record (710) - Receiver of the transaction and the dollar amount of the payment.';
                         row.innerHTML = `
                         <div class="field">
                             <label>Record Type Code:</label>
@@ -473,6 +473,7 @@
                         </div>
                     `;
                     } else if (addendaType === '11') {
+                        header.textContent = 'IAT Second Addenda Record (711) - Key information related to the Originator of the entry.';
                         row.innerHTML = `
                             <div class="field">
                                 <label>Record Type Code:</label>
@@ -500,6 +501,7 @@
                             </div>
                         `;
                     } else if (addendaType === '12') {
+                        header.textContent = 'IAT Third Addenda Record (712) - Key information related to the Originator of the entry.';
                         row.innerHTML = `
                             <div class="field">
                                 <label>Record Type Code:</label>
@@ -527,6 +529,7 @@
                             </div>
                         `;
                     } else if (addendaType === '13') {
+                        header.textContent = 'IAT Fourth Addenda Record (713) - Information related to the FI originating the entry.';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -562,6 +565,7 @@
                             </div>
                         `;
                     } else if (addendaType === '14') {
+                        header.textContent = 'IAT Fifth Addenda Record (714) - Identifies the Receiving financial institution holding the Receiver’s account.';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -597,6 +601,7 @@
                             </div>
                         `;
                     } else if (addendaType === '15') {
+                        header.textContent = 'IAT Sixth Addenda Record (715) - Identify information related to the Receiver.';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -624,6 +629,7 @@
                             </div>
                         `;
                     } else if (addendaType === '16') {
+                        header.textContent = 'IAT Seventh Addenda Record (716) - Identify information related to the Receiver.';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -651,6 +657,7 @@
                             </div>
                         `;
                     } else if (addendaType === '17') {
+                        header.textContent = 'IAT Addenda Record for Remittance Information (717) (Optional)';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -674,6 +681,7 @@
                             </div>
                         `;
                     } else if (addendaType === '18') {
+                        header.textContent = 'IAT Addenda Record for Foreign Correspondent Bank Information (718)';
                         row.innerHTML = `
                             <div class="field">
                                 <label title="The code identifying the Addenda Record">Record Type Code:</label>
@@ -713,8 +721,8 @@
                             </div>
                         `;
                     }
-
-
+                    
+                    groupContent.appendChild(header);
                 } else if (recordType === '8') {
                     const header = document.createElement('h4');
                     header.textContent = 'Batch Control Record';
