@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,36 +9,45 @@
         body {
             font-family: Arial, Helvetica, sans-serif;
         }
+
         .container {
-            max-width: 1024px;
+            max-width: 1100px;
             min-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
+
         .field {
             margin-bottom: 10px;
         }
+
         .field label {
             display: block;
             margin-bottom: 5px;
         }
-        .field input, .field textarea {
+
+        .field input,
+        .field textarea {
             width: 100%;
             padding: 8px;
             box-sizing: border-box;
         }
+
         .row {
             display: flex;
             flex-wrap: wrap;
         }
+
         .row .field {
             flex: 1;
             min-width: 200px;
             margin-right: 10px;
         }
+
         .row .field:last-child {
             margin-right: 0;
         }
+
         .collapsible {
             background-color: #f1f1f1;
             cursor: pointer;
@@ -48,9 +58,12 @@
             outline: none;
             font-size: 15px;
         }
-        .active, .collapsible:hover {
+
+        .active,
+        .collapsible:hover {
             background-color: #ccc;
         }
+
         .content {
             padding: 0 18px;
             display: none;
@@ -59,40 +72,42 @@
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>ACH File Parser</h1>
-        <div class="field">
-            <label for="achFileContent">ACH File Content (domestic only atm):</label>
-            <textarea id="achFileContent" rows="10"></textarea>
-        </div>
-        <button onclick="parseAchFile()">Parse</button>
-        <h2>Parsed Information</h2>
-        <div id="parsedInfo"></div>
+<div class="container">
+    <h1>ACH File Parser</h1>
+    <div class="field">
+        <label for="achFileContent">ACH File Content:</label>
+        <textarea id="achFileContent" rows="10"></textarea>
     </div>
-    <script>
-        function parseAchFile() {
-            const achFileContent = document.getElementById('achFileContent').value;
-            const lines = achFileContent.split('\n');
-            const parsedInfo = document.getElementById('parsedInfo');
-            parsedInfo.innerHTML = '';
+    <button onclick="parseAchFile()">Parse</button>
+    <h2>Parsed Information</h2>
+    <div id="parsedInfo"></div>
+</div>
+<script>
+    function parseAchFile() {
+        const achFileContent = document.getElementById('achFileContent').value;
+        const lines = achFileContent.split('\n');
+        const parsedInfo = document.getElementById('parsedInfo');
+        parsedInfo.innerHTML = '';
 
-            let groupContent = null;
-            let batchCount = 0;
+        let groupContent = null;
+        let batchCount = 0;
+        let isIat = false;
 
-            lines.forEach((line, index) => {
-                if (line.trim() === '' || /^9+$/.test(line)) return;
+        lines.forEach((line, index) => {
+            if (line.trim() === '' || /^9+$/.test(line)) return;
 
-                const recordType = line.substring(0, 1);
-                const row = document.createElement('div');
-                row.className = 'row';
+            const recordType = line.substring(0, 1);
+            const row = document.createElement('div');
+            row.className = 'row';
 
-                if (recordType === '1') {
-                    const header = document.createElement('h3');
-                    header.textContent = 'File Header Record';
-                    parsedInfo.appendChild(header);
+            if (recordType === '1') {
+                const header = document.createElement('h3');
+                header.textContent = 'File Header Record';
+                parsedInfo.appendChild(header);
 
-                    row.innerHTML = `
+                row.innerHTML = `
                         <div class="field">
                             <label>Record Type Code:</label>
                             <input type="text" value="${line.substring(0, 1)}" readonly>
@@ -146,37 +161,112 @@
                             <input type="text" value="${line.substring(86, 94).trim()}" readonly>
                         </div>
                     `;
-                } else if (recordType === '5' || recordType === '6' || recordType === '8') {
-                    if (!groupContent) {
-                        batchCount++;
-                        const groupHeader = document.createElement('h3');
-                        groupHeader.textContent = `Batch ${batchCount}`;
-                        parsedInfo.appendChild(groupHeader);
+            } else if (recordType === '5' || recordType === '6' || recordType === '7' || recordType === '8') {
+                if (!groupContent) {
+                    batchCount++;
+                    const groupHeader = document.createElement('h3');
+                    groupHeader.textContent = `Batch ${batchCount}`;
+                    parsedInfo.appendChild(groupHeader);
 
-                        const groupButton = document.createElement('button');
-                        groupButton.className = 'collapsible';
-                        groupButton.innerText = `Batch Records (5, 6, 8) - Batch ${batchCount}`;
-                        groupButton.onclick = function() {
-                            this.classList.toggle('active');
-                            const content = this.nextElementSibling;
-                            if (content.style.display === 'block') {
-                                content.style.display = 'none';
-                            } else {
-                                content.style.display = 'block';
-                            }
-                        };
-                        parsedInfo.appendChild(groupButton);
+                    const groupButton = document.createElement('button');
+                    groupButton.className = 'collapsible';
+                    groupButton.innerText = `Batch Records (5, 6, 7, 8) - Batch ${batchCount}`;
+                    groupButton.onclick = function () {
+                        this.classList.toggle('active');
+                        const content = this.nextElementSibling;
+                        if (content.style.display === 'block') {
+                            content.style.display = 'none';
+                        } else {
+                            content.style.display = 'block';
+                        }
+                    };
+                    parsedInfo.appendChild(groupButton);
 
-                        groupContent = document.createElement('div');
-                        groupContent.className = 'content';
-                        parsedInfo.appendChild(groupContent);
-                    }
+                    groupContent = document.createElement('div');
+                    groupContent.className = 'content';
+                    parsedInfo.appendChild(groupContent);
+                }
 
-                    if (recordType === '5') {
-                        const header = document.createElement('h4');
-                        header.textContent = 'Batch Header Record';
-                        groupContent.appendChild(header);
+                if (recordType === '5') {
+                    const header = document.createElement('h4');
+                    header.textContent = 'Batch Header Record';
+                    groupContent.appendChild(header);
 
+                    const secCode = line.substring(50, 53).trim();
+                    if (secCode === 'IAT') {
+                        isIat = true;
+                        row.innerHTML = `
+                            <div class="field">
+                                <label>Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Service Class Code:</label>
+                                <input type="text" value="${line.substring(1, 4)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Company Name:</label>
+                                <input type="text" value="${line.substring(4, 20).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Foreign Exchange Indicator:</label>
+                                <input type="text" value="${line.substring(20, 22).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Foreign Exchange Ref. Indicator:</label>
+                                <input type="text" value="${line.substring(22, 23).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Foreign Exchange Reference:</label>
+                                <input type="text" value="${line.substring(23, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>ISO DesigationCountry Code:</label>
+                                <input type="text" value="${line.substring(38, 40).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator ID:</label>
+                                <input type="text" value="${line.substring(40, 50).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Standard Entry Class:</label>
+                                <input type="text" value="${line.substring(50, 53).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Entry Description:</label>
+                                <input type="text" value="${line.substring(53, 63).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>ISO Orig Curr Code:</label>
+                                <input type="text" value="${line.substring(63, 66).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>ISO Dest Curr Code:</label>
+                                <input type="text" value="${line.substring(66, 69).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Date:</label>
+                                <input type="text" value="${line.substring(69, 75).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Settlement Date:</label>
+                                <input type="text" value="${line.substring(75, 78).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator Status Code:</label>
+                                <input type="text" value="${line.substring(78, 79).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originating ID:</label>
+                                <input type="text" value="${line.substring(79, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Batch Sequence number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                            `;
+                    } else {
+                        isIat = false;
                         row.innerHTML = `
                             <div class="field">
                                 <label>Record Type Code:</label>
@@ -231,11 +321,68 @@
                                 <input type="text" value="${line.substring(87, 94).trim()}" readonly>
                             </div>
                         `;
-                    } else if (recordType === '6') {
-                        const header = document.createElement('h4');
-                        header.textContent = 'Entry Record';
-                        groupContent.appendChild(header);
+                    }
+                } else if (recordType === '6') {
+                    const header = document.createElement('h4');
+                    header.textContent = 'Entry Record';
+                    groupContent.appendChild(header);
 
+                    if (isIat) {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label>Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Transaction Code:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Detail Transit (Receiver routing):</label>
+                                <input type="text" value="${line.substring(3, 11)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Check Digit:</label>
+                                <input type="text" value="${line.substring(11, 12)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Number of Addenda Records:</label>
+                                <input type="text" value="${line.substring(12, 16)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Reserved (Blank):</label>
+                                <input type="text" value="${line.substring(16, 29).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Amount:</label>
+                                <input type="text" value="${line.substring(29, 39).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Receiver's Account Number:</label>
+                                <input type="text" value="${line.substring(39, 74).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Reserved (Blank):</label>
+                                <input type="text" value="${line.substring(74, 76).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Filler:</label>
+                                <input type="text" value="${line.substring(76, 77)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Filler:</label>
+                                <input type="text" value="${line.substring(77, 78)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Addenda Record Indicator:</label>
+                                <input type="text" value="${line.substring(78, 79)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Trace Number:</label>
+                                <input type="text" value="${line.substring(79, 94).trim()}" readonly>
+                            </div>
+                            `;
+                    } else {
                         row.innerHTML = `
                             <div class="field">
                                 <label>Record Type Code:</label>
@@ -282,11 +429,341 @@
                                 <input type="text" value="${line.substring(79, 94).trim()}" readonly>
                             </div>
                         `;
-                    } else if (recordType === '8') {
-                        const header = document.createElement('h4');
-                        header.textContent = 'Batch Control Record';
-                        groupContent.appendChild(header);
+                    }
+                } else if (recordType === '7') {
+                    const header = document.createElement('h4');
+                    header.textContent = 'Addenda Record';
+                    groupContent.appendChild(header);
+                    
+                    const addendaType = line.substring(1, 3);
+                    
+                    if (addendaType === '10') {
+                        row.innerHTML = `
+                        <div class="field">
+                            <label>Record Type Code:</label>
+                            <input type="text" value="${line.substring(0, 1)}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Addenda Type:</label>
+                            <input type="text" value="${line.substring(1, 3)}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Transaction Type Code:</label>
+                            <input type="text" value="${line.substring(3, 6)}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Foreign Payment Amount:</label>
+                            <input type="text" value="${line.substring(6, 24).trim()}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Foreign Trace Number:</label>
+                            <input type="text" value="${line.substring(24, 46).trim()}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Receiving Company Name/Individual Name:</label>
+                            <input type="text" value="${line.substring(46, 81).trim()}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Reserved:</label>
+                            <input type="text" value="${line.substring(81, 87).trim()}" readonly>
+                        </div>
+                        <div class="field">
+                            <label>Entry Detail Sequence Number:</label>
+                            <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                        </div>
+                    `;
+                    } else if (addendaType === '11') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label>Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator Name:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator Street Address:</label>
+                                <input type="text" value="${line.substring(38, 73).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Reserved:</label>
+                                <input type="text" value="${line.substring(73, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '12') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label>Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator City & State / Province:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Originator Country & Postal Code:</label>
+                                <input type="text" value="${line.substring(38, 73).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Reserved:</label>
+                                <input type="text" value="${line.substring(73, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '13') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Code Fourth Addenda Record for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="For Inbound IATs: Name of the foreign bank providing funding for the payment transaction">Originating DFI Name:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="For Inbound IATs: The 2-digit code that identifies the numbering scheme used in the Foreign DFI Identification Number field: 01 = National Clearing System, 02 = BIC Code, 03 = IBAN Code">Originating DFI Identification Number Qualifier:</label>
+                                <input type="text" value="${line.substring(38, 40).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="For Inbound IATs: This field contains the bank ID number of the Foreign Bank providing funding for the payment transaction.">Originating DFI Identification:</label>
+                                <input type="text" value="${line.substring(40, 74).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains a two-character alphabetic country code, as defined within the International Organization for Standardization’s (ISO) 3166-1-alpha-2 code list, to identify the country in which the branch of the bank that originated the Entry is located.">Originating DFI Branch Country Code:</label>
+                                <input type="text" value="${line.substring(74, 77).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Leave blank">Reserved:</label>
+                                <input type="text" value="${line.substring(77, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '14') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Code Fifth Addenda Record for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Name of the Receiver’s bank">Receiving DFI Name:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="The 2-digit code that identifies the numbering scheme used in the Receiving DFI Identification Number field: 01 = National Clearing System, 02 = BIC Code, 03 = IBAN Code">Receiving DFI Identification Number Qualifier:</label>
+                                <input type="text" value="${line.substring(38, 40).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="The bank identification number of the DFI at which the Receiver maintains his account.">Receiving DFI Identification Number:</label>
+                                <input type="text" value="${line.substring(40, 74).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the two-character alphabetic country code, as defined within the International Organization for Standardization’s (ISO) 3166-1-alpha-2 code list, to identify the country in which the branch of the bank that received the entry is located.">Receiving DFI Branch Country Code:</label>
+                                <input type="text" value="${line.substring(74, 77).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Leave blank">Reserved:</label>
+                                <input type="text" value="${line.substring(77, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '15') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Code Sixth Addenda Record for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field may be used by the Originator to insert its own number for tracing purposes. Nacha Rules recommend but do not require the RDFI to print the contents of this field on the receiver’s statement.">Receiver Identification Number:</label>
+                                <input type="text" value="${line.substring(3, 18).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Receiver’s physical address">Receiver Street Address:</label>
+                                <input type="text" value="${line.substring(18, 53).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Leave blank">Reserved:</label>
+                                <input type="text" value="${line.substring(53, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '16') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Code Seventh Addenda Record for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the city and, if applicable, the state or province of the Receiver. An asterisk (“*”) must be used as the delimiter between the data elements, and the backslash (“\\”) or the tilde (“~”) must be used as the terminator following the last data element.">Receiver City, State/Province:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the two-character alphabetic country code, as defined within the International Organization for Standardization’s 3166-1-alpha-2 code list, and the postal code of the Receiver. An asterisk (“*”) must be used as the delimiter between the data elements, and the backslash (“\\”) or the tilde (“~”) must be used as the terminator following the last data element.">Receiving DFI Identification Number Qualifier:</label>
+                                <input type="text" value="${line.substring(38, 73).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Leave blank">Receiving DFI Identification Number:</label>
+                                <input type="text" value="${line.substring(73, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Receiving DFI Branch Country Code:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '17') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Code Addenda Record for Remittance Information for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Payment information associated with the preceding Entry Detail Record. An asterisk (“*”) must be used as the delimiter between the data elements, and the backslash (“\\”) or tilde (“~”) must be used as the terminator at the end of a data segment.">Payment Related Information:</label>
+                                <input type="text" value="${line.substring(3, 83).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Sequence number of each type “17” remittance addenda in ascending order beginning with 0001">Addenda Sequence Number:</label>
+                                <input type="text" value="${line.substring(83, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '18') {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Addenda Record for Foreign Correspondent Bank Information for IAT">Addenda Type:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the name of the Foreign Correspondent Bank">Foreign Correspondent Bank Name:</label>
+                                <input type="text" value="${line.substring(3, 38).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains a 2-digit code that identifies the numbering scheme used in the Foreign Correspondent Bank Identification Number field. Code values for this field are: 01 = National Clearing System, 02 = BIC Code, 03 = IBAN Code">Foreign Correspondent Bank Identification Number Qualifier:</label>
+                                <input type="text" value="${line.substring(38, 40).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the bank ID number of the Foreign Correspondent Bank">Foreign Correspondent Bank Identification Number:</label>
+                                <input type="text" value="${line.substring(40, 74).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the two-character alphabetic country code, as defined within the International Organization for Standardization’s 3166-1-alpha-2 code list, to identify the country in which the branch of the Foreign Correspondent Bank is located.">Foreign Correspondent Bank Branch Country Code:</label>
+                                <input type="text" value="${line.substring(74, 77).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Reserved">Reserved:</label>
+                                <input type="text" value="${line.substring(77, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Sequence number of each ‘Type 18” Foreign Correspondent Bank Identification addenda in ascending order beginning with “0001”">Addenda Sequence Number:</label>
+                                <input type="text" value="${line.substring(83, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record’s trace number.">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    }
 
+
+                } else if (recordType === '8') {
+                    const header = document.createElement('h4');
+                    header.textContent = 'Batch Control Record';
+                    groupContent.appendChild(header);
+
+                    if (isIat) {
+                        row.innerHTML = `
+                            <div class="field">
+                                <label>Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Service Class Code:</label>
+                                <input type="text" value="${line.substring(1, 4)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Entry/Addenda Count:</label>
+                                <input type="text" value="${line.substring(4, 10).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Entry Hash:</label>
+                                <input type="text" value="${line.substring(10, 20).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Total Debit Entry Dollar Amount:</label>
+                                <input type="text" value="${line.substring(20, 32).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Total Credit Entry Dollar Amount:</label>
+                                <input type="text" value="${line.substring(32, 44).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Company Identification:</label>
+                                <input type="text" value="${line.substring(44, 54).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Filler (Blank):</label>
+                                <input type="text" value="${line.substring(54, 79).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Origination ID:</label>
+                                <input type="text" value="${line.substring(79, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label>Batch Sequence number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                            `;
+                    } else {
                         row.innerHTML = `
                             <div class="field">
                                 <label>Record Type Code:</label>
@@ -334,18 +811,19 @@
                             </div>
                         `;
                     }
+                }
 
-                    groupContent.appendChild(row);
-                    if (recordType === '8') {
-                        // reset the group fro the batch if batch control record was processed
-                        groupContent = null;
-                    }
-                } else if (recordType === '9') {
-                    const header = document.createElement('h3');
-                    header.textContent = 'File Control Record';
-                    parsedInfo.appendChild(header);
+                groupContent.appendChild(row);
+                if (recordType === '8') {
+                    // reset the group for the batch if batch control record was processed
+                    groupContent = null;
+                }
+            } else if (recordType === '9') {
+                const header = document.createElement('h3');
+                header.textContent = 'File Control Record';
+                parsedInfo.appendChild(header);
 
-                    row.innerHTML = `
+                row.innerHTML = `
                         <div class="field">
                             <label>Record Type Code:</label>
                             <input type="text" value="${line.substring(0, 1)}" readonly>
@@ -379,13 +857,13 @@
                             <input type="text" value="${line.substring(55, 94).trim()}" readonly>
                         </div>
                     `;
-                }
+            }
 
-                if (recordType !== '5' && recordType !== '6' && recordType !== '8') {
-                    parsedInfo.appendChild(row);
-                }
-            });
-        }
-    </script>
+            if (recordType !== '5' && recordType !== '6' && recordType !== '7' && recordType !== '8') {
+                parsedInfo.appendChild(row);
+            }
+        });
+    }
+</script>
 </body>
 </html>
