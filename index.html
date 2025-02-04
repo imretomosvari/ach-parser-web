@@ -721,6 +721,83 @@
                                 <input type="text" value="${line.substring(87, 94).trim()}" readonly>
                             </div>
                         `;
+                    } else if (addendaType == '99') {
+                            header.textContent = 'Return addenda (799)';
+                        if (isIat) {
+                            row.innerHTML = `
+                            <div class="field">
+                                <label title="Code Identifying the Addenda Record.">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Addenda Record IAT Returns.">Addenda Type Code:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains code associated with the reason for the return.">Return Reason Code:</label>
+                                <input type="text" value="${line.substring(3, 6).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the Trace Number as originally included on the forward Entry.">Original Trace Number:</label>
+                                <input type="text" value="${line.substring(6, 21).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field is used for Return Reason Code R14 or R15.">Date of Death:</label>
+                                <input type="text" value="${line.substring(21, 27).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the Receiving DFI Identification as originally included on the forward Entry that the RDFI is returning or correcting.">Original DFI:</label>
+                                <input type="text" value="${line.substring(27, 35).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Original Payment of the forward Entry.">Original Payment Amount:</label>
+                                <input type="text" value="${line.substring(35, 45).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Addenda Information.">Addenda Information:</label>
+                                <input type="text" value="${line.substring(45, 79).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="The Trace Number of the entry being returned.">Trace Number:</label>
+                                <input type="text" value="${line.substring(79, 94).trim()}" readonly>
+                            </div>
+                        `;
+                        } else {
+                            row.innerHTML = `
+                            <div class="field">
+                                <label title="Code Identifying the Addenda Record.">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Addenda Record IAT Returns.">Addenda Type Code:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains code associated with the reason for the return.">Return Reason Code:</label>
+                                <input type="text" value="${line.substring(3, 6).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the Trace Number as originally included on the forward Entry.">Original Trace Number:</label>
+                                <input type="text" value="${line.substring(6, 21).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field is used for Return Reason Code R14 or R15.">Date of Death:</label>
+                                <input type="text" value="${line.substring(21, 27).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the Receiving DFI Identification as originally included on the forward Entry that the RDFI is returning or correcting.">Original DFI:</label>
+                                <input type="text" value="${line.substring(27, 35).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Addenda Information.">Addenda Information:</label>
+                                <input type="text" value="${line.substring(35, 79).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="The Trace Number of the entry being returned.">Trace Number:</label>
+                                <input type="text" value="${line.substring(79, 94).trim()}" readonly>
+                            </div>
+                        `;
+                        }
                     }
                     
                     groupContent.appendChild(header);
