@@ -44,7 +44,7 @@ Or with this IAT one:
 I advise not to input real files on the github hosted version, but you can download the index.html, and run it in your own browser from your computer.
 
 **Currently works with:**
-- Domestic ACH files as described [here](https://achdevguide.nacha.org/ach-file-details)
+- Domestic and international ACH files including returns.
 
 
 # Disclaimer
