@@ -584,11 +584,11 @@
                                 <input type="text" value="${line.substring(3, 38).trim()}" readonly>
                             </div>
                             <div class="field">
-                                <label title="This field contains the two-character alphabetic country code, as defined within the International Organization for Standardization’s 3166-1-alpha-2 code list, and the postal code of the Receiver. An asterisk (“*”) must be used as the delimiter between the data elements, and the backslash (“\\”) or the tilde (“~”) must be used as the terminator following the last data element.">Receiving DFI Identification Number Qualifier:</label>
+                                <label title="This field contains the two-character alphabetic country code, as defined within the International Organization for Standardization’s 3166-1-alpha-2 code list, and the postal code of the Receiver. An asterisk (“*”) must be used as the delimiter between the data elements, and the backslash (“\\”) or the tilde (“~”) must be used as the terminator following the last data element.">Receiver country & postal code:</label>
                                 <input type="text" value="${line.substring(38, 73).trim()}" readonly>
                             </div>
                             <div class="field">
-                                <label title="Leave blank">Receiving DFI Identification Number:</label>
+                                <label title="Leave blank">Reserved:</label>
                                 <input type="text" value="${line.substring(73, 87).trim()}" readonly>
                             </div>
                             <div class="field">
@@ -649,7 +649,7 @@
                             </div>
                             <div class="field">
                                 <label title="Reserved">Reserved:</label>
-                                <input type="text" value="${line.substring(77, 87).trim()}" readonly>
+                                <input type="text" value="${line.substring(77, 83).trim()}" readonly>
                             </div>
                             <div class="field">
                                 <label title="Sequence number of each ‘Type 18” Foreign Correspondent Bank Identification addenda in ascending order beginning with “0001”">Addenda Sequence Number:</label>
