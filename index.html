@@ -21,22 +21,127 @@
         <textarea id="achFileContent" rows="10"></textarea>
     </div>
     <button onclick="parseAchFile()">Parse</button>
+    <div id="validationSummary" style="display: none;"></div>
     <h2>Parsed Information</h2>
     <div id="parsedInfo"></div>
 </div>
 <script>
+    // Validation tracking
+    const validationIssues = {
+        errors: [],
+        warnings: []
+    };
+
+    // Add validation issue
+    function addValidation(type, lineNumber, field, message) {
+        const issue = { lineNumber, field, message };
+        if (type === 'error') {
+            validationIssues.errors.push(issue);
+        } else {
+            validationIssues.warnings.push(issue);
+        }
+    }
+
+    // Display validation summary
+    function displayValidationSummary() {
+        const summaryDiv = document.getElementById('validationSummary');
+        const errorCount = validationIssues.errors.length;
+        const warningCount = validationIssues.warnings.length;
+
+        if (errorCount === 0 && warningCount === 0) {
+            summaryDiv.innerHTML = '<div class="validation-summary valid">✓ File Valid - No issues found</div>';
+            summaryDiv.style.display = 'block';
+            return;
+        }
+
+        let summaryHTML = '<div class="validation-summary">';
+
+        if (errorCount > 0) {
+            summaryHTML += `<span class="error-badge">✗ ${errorCount} Error${errorCount > 1 ? 's' : ''}</span>`;
+        }
+        if (warningCount > 0) {
+            summaryHTML += `<span class="warning-badge">⚠ ${warningCount} Warning${warningCount > 1 ? 's' : ''}</span>`;
+        }
+
+        summaryHTML += '<button class="toggle-details" onclick="toggleValidationDetails()">Show Details</button>';
+        summaryHTML += '</div>';
+
+        summaryHTML += '<div id="validationDetails" class="validation-details" style="display: none;">';
+
+        if (errorCount > 0) {
+            summaryHTML += '<h4>Errors:</h4><ul>';
+            validationIssues.errors.forEach(issue => {
+                summaryHTML += `<li><strong>Line ${issue.lineNumber}:</strong> ${issue.field} - ${issue.message}</li>`;
+            });
+            summaryHTML += '</ul>';
+        }
+
+        if (warningCount > 0) {
+            summaryHTML += '<h4>Warnings:</h4><ul>';
+            validationIssues.warnings.forEach(issue => {
+                summaryHTML += `<li><strong>Line ${issue.lineNumber}:</strong> ${issue.field} - ${issue.message}</li>`;
+            });
+            summaryHTML += '</ul>';
+        }
+
+        summaryHTML += '</div>';
+
+        summaryDiv.innerHTML = summaryHTML;
+        summaryDiv.style.display = 'block';
+    }
+
+    function toggleValidationDetails() {
+        const details = document.getElementById('validationDetails');
+        const button = document.querySelector('.toggle-details');
+        if (details.style.display === 'none') {
+            details.style.display = 'block';
+            button.textContent = 'Hide Details';
+        } else {
+            details.style.display = 'none';
+            button.textContent = 'Show Details';
+        }
+    }
+
     function parseAchFile() {
         const achFileContent = document.getElementById('achFileContent').value;
         const lines = achFileContent.split('\n');
         const parsedInfo = document.getElementById('parsedInfo');
         parsedInfo.innerHTML = '';
 
+        // Reset validation
+        validationIssues.errors = [];
+        validationIssues.warnings = [];
+
         let groupContent = null;
         let batchCount = 0;
         let isIat = false;
 
+        // Batch tracking for validation
+        let currentBatch = {
+            entryCount: 0,
+            debitTotal: 0,
+            creditTotal: 0,
+            hashTotal: 0
+        };
+        let allBatches = [];
+        let totalRecordCount = 0;
+
         lines.forEach((line, index) => {
-            if (line.trim() === '' || /^9+$/.test(line)) return;
+            if (line.trim() === '') return;
+
+            const lineNumber = index + 1;
+
+            // Count all non-empty records (including padding)
+            if (line.length > 0) {
+                totalRecordCount++;
+            }
+
+            if (/^9+$/.test(line)) return; // Skip padding lines
+
+            // Validate record length
+            if (line.length !== 94) {
+                addValidation('error', lineNumber, 'Record Length', `Invalid length: ${line.length} characters (expected 94)`);
+            }
 
             const recordType = line.substring(0, 1);
             const row = document.createElement('div');
@@ -132,7 +237,20 @@
                     header.textContent = 'Batch Header Record';
                     groupContent.appendChild(header);
 
+                    // Start new batch tracking
+                    if (allBatches.length > 0 && currentBatch.entryCount > 0) {
+                        allBatches.push({...currentBatch});
+                    }
+                    currentBatch = {
+                        entryCount: 0,
+                        addendaCount: 0,
+                        debitTotal: 0,
+                        creditTotal: 0,
+                        hashTotal: 0
+                    };
+
                     const secCode = line.substring(50, 53).trim();
+
                     if (secCode === 'IAT') {
                         isIat = true;
                         row.innerHTML = `
@@ -267,6 +385,24 @@
                     header.textContent = 'Entry Record';
                     groupContent.appendChild(header);
 
+                    // Count entry
+                    currentBatch.entryCount++;
+
+                    // Get transaction code, receiving DFI and amount
+                    const transactionCode = line.substring(1, 3);
+                    const receivingDFI = line.substring(3, 11);
+                    const amount = parseInt(line.substring(29, 39).trim() || '0');
+
+                    // Determine if debit or credit based on transaction code
+                    if (['27', '28', '29', '37', '38', '39'].includes(transactionCode)) {
+                        currentBatch.debitTotal += amount;
+                    } else {
+                        currentBatch.creditTotal += amount;
+                    }
+
+                    // Add to hash (first 8 digits of routing)
+                    currentBatch.hashTotal += parseInt(receivingDFI);
+
                     if (isIat) {
                         row.innerHTML = `
                             <div class="field">
@@ -373,7 +509,10 @@
                 } else if (recordType === '7') {
                     const header = document.createElement('h4');
                     header.textContent = 'Addenda Record';
-                    
+
+                    // Count addenda
+                    currentBatch.addendaCount++;
+
                     const addendaType = line.substring(1, 3);
                     
                     if (addendaType === '10') {
@@ -769,6 +908,38 @@
                     header.textContent = 'Batch Control Record';
                     groupContent.appendChild(header);
 
+                    // Validate batch control totals
+                    const controlEntryAddendaCount = parseInt(line.substring(4, 10).trim());
+                    const controlEntryHash = parseInt(line.substring(10, 20).trim());
+                    const controlDebitTotal = parseInt(line.substring(20, 32).trim() || '0');
+                    const controlCreditTotal = parseInt(line.substring(32, 44).trim() || '0');
+
+                    const actualEntryAddendaCount = currentBatch.entryCount + currentBatch.addendaCount;
+                    if (controlEntryAddendaCount !== actualEntryAddendaCount) {
+                        addValidation('error', lineNumber, 'Entry/Addenda Count',
+                            `Mismatch: Control=${controlEntryAddendaCount}, Actual=${actualEntryAddendaCount}`);
+                    }
+
+                    // Hash validation (only check last 10 digits)
+                    const actualHash = currentBatch.hashTotal % 10000000000;
+                    if (controlEntryHash !== actualHash) {
+                        addValidation('warning', lineNumber, 'Entry Hash',
+                            `Mismatch: Control=${controlEntryHash}, Actual=${actualHash}`);
+                    }
+
+                    if (controlDebitTotal !== currentBatch.debitTotal) {
+                        addValidation('error', lineNumber, 'Debit Total',
+                            `Mismatch: Control=${controlDebitTotal}, Actual=${currentBatch.debitTotal}`);
+                    }
+
+                    if (controlCreditTotal !== currentBatch.creditTotal) {
+                        addValidation('error', lineNumber, 'Credit Total',
+                            `Mismatch: Control=${controlCreditTotal}, Actual=${currentBatch.creditTotal}`);
+                    }
+
+                    // Store completed batch
+                    allBatches.push({...currentBatch, controlDebitTotal, controlCreditTotal});
+
                     if (isIat) {
                         row.innerHTML = `
                             <div class="field">
@@ -872,6 +1043,52 @@
                 header.textContent = 'File Control Record';
                 parsedInfo.appendChild(header);
 
+                // Validate file control totals
+                const fileBatchCount = parseInt(line.substring(1, 7).trim());
+                const fileBlockCount = parseInt(line.substring(7, 13).trim());
+                const fileEntryAddendaCount = parseInt(line.substring(13, 21).trim());
+                const fileDebitTotal = parseInt(line.substring(31, 43).trim() || '0');
+                const fileCreditTotal = parseInt(line.substring(43, 55).trim() || '0');
+
+                // Calculate actual block count (records are grouped in blocks of 10)
+                const actualBlockCount = Math.ceil(totalRecordCount / 10);
+
+                // Calculate actual totals from all batches
+                let actualFileDebitTotal = 0;
+                let actualFileCreditTotal = 0;
+                let actualFileEntryAddendaCount = 0;
+
+                allBatches.forEach(batch => {
+                    actualFileDebitTotal += batch.debitTotal;
+                    actualFileCreditTotal += batch.creditTotal;
+                    actualFileEntryAddendaCount += (batch.entryCount + batch.addendaCount);
+                });
+
+                if (fileBatchCount !== batchCount) {
+                    addValidation('error', lineNumber, 'Batch Count',
+                        `Mismatch: Control=${fileBatchCount}, Actual=${batchCount}`);
+                }
+
+                if (fileBlockCount !== actualBlockCount) {
+                    addValidation('error', lineNumber, 'Block Count',
+                        `Mismatch: Control=${fileBlockCount}, Actual=${actualBlockCount}`);
+                }
+
+                if (fileEntryAddendaCount !== actualFileEntryAddendaCount) {
+                    addValidation('error', lineNumber, 'Entry/Addenda Count',
+                        `Mismatch: Control=${fileEntryAddendaCount}, Actual=${actualFileEntryAddendaCount}`);
+                }
+
+                if (fileDebitTotal !== actualFileDebitTotal) {
+                    addValidation('error', lineNumber, 'Debit Total',
+                        `Mismatch: Control=${fileDebitTotal}, Actual=${actualFileDebitTotal}`);
+                }
+
+                if (fileCreditTotal !== actualFileCreditTotal) {
+                    addValidation('error', lineNumber, 'Credit Total',
+                        `Mismatch: Control=${fileCreditTotal}, Actual=${actualFileCreditTotal}`);
+                }
+
                 row.innerHTML = `
                         <div class="field">
                             <label>Record Type Code:</label>
@@ -912,6 +1129,9 @@
                 parsedInfo.appendChild(row);
             }
         });
+
+        // Display validation summary
+        displayValidationSummary();
     }
 </script>
 </body>
