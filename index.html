@@ -660,7 +660,31 @@
                                 <input type="text" value="${line.substring(87, 94).trim()}" readonly>
                             </div>
                         `;
-                    } else if (addendaType == '99') {
+                    } else if (addendaType === '05') {
+                        header.textContent = 'Domestic Addenda Record (705)';
+                        row.innerHTML = `
+                            <div class="field">
+                                <label title="The code identifying the Addenda Record">Record Type Code:</label>
+                                <input type="text" value="${line.substring(0, 1)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="WEB Addenda Record">Addenda Type Code:</label>
+                                <input type="text" value="${line.substring(1, 3)}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Payment related information (optional, alphameric, 80 characters)">Payment Related Information:</label>
+                                <input type="text" value="${line.substring(3, 83).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="Sequence number of the addenda record (4 digits)">Addenda Sequence Number:</label>
+                                <input type="text" value="${line.substring(83, 87).trim()}" readonly>
+                            </div>
+                            <div class="field">
+                                <label title="This field contains the ascending sequence number section of the Entry Detail Record's trace number">Entry Detail Sequence Number:</label>
+                                <input type="text" value="${line.substring(87, 94).trim()}" readonly>
+                            </div>
+                        `;
+                    } else if (addendaType === '99') {
                             header.textContent = 'Return addenda (799)';
                         if (isIat) {
                             row.innerHTML = `
