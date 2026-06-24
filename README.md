@@ -1,51 +1,39 @@
-# NACHA ACH parser
-This simple sattic HTML website with some JavaScript will parser your NACHA ACH payment instruction files. No dependencies were used in creating this project.
+# Fintech Toolbox
 
-You can try it [here](https://imretomosvari.github.io/ach-parser-web/) with this completely fake domestic file:
+A static, toolbox for inspecting payment files right in your browser. Everything runs client-side — your files never leave your machine, no network calls after downloading the site.
 
-```
-101 77665544311223344552401290600A094101SOME COOL BANK         MY COOL BANK           00000000
-5225MY COOL BANK    1                   1122334455WEBBANK      240129240129   1112333440000001
-6270210000211111111111       0000050000reference-1    John H Smith            0112333440000001
-822500000100021334320000000500000000000000001122334455                         112333440000001
-5225MY COOL BANK    4                   1122334455WEBBANK      240129240129   1112333440000002
-6370260730081234111333       0000050000reference-1    John H Smith            0112333440000002
-822500000100028173400000000500000000000000001122334455                         112333440000002
-9000002000002000000020614307420000000550000000000000000
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-```
-Or with this IAT one:
-```
-101 77665544311223344552401290600A094101SOME COOL BANK         MY COOL BANK           00000000
-5225                FF3               US1122334455IATAsdf dsa pUSDUSD250131   1456003450000001
-6272342342340010             000001403611122233344455                         1233211235964010
-710WEB000000000000000000                      Mr Doctor                                5964010
-711MY BANK                            34 E 22th Street                                 5964010
-712New York*NY\                       US*10010\                                        5964010
-713SOME COOL BANK                     01233211233                         US           5964010
-714Another BANK NAME                  01554433221                         US           5964010
-71566554433       2234 Johns Ave.                                                      5964010
-716MyCity*TN\                         US*33214\                                        5964010
-717Recipient Name*12/11 Livingstone Rd\                                            00015964010
-717CityName*NSW*2011*VN\                                                           00025964010
-718TargetBank, Hanoi.                 01322334                            AU       00035964010
-822500001100263245680000000140360000000000001122334455                         456003450000001
-9000001000003000081079295334053000099999777000000000000                                       
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999
-```
+Try it [here](https://imretomosvari.github.io/ach-parser-web/).
 
+## Tools
 
-I advise not to input real files on the github hosted version, but you can download the index.html, and run it in your own browser from your computer.
+### NACHA ACH parser
+Parses NACHA ACH payment instruction files into a readable breakdown of file headers, company/batch information, entry detail and addenda records.
 
-**Currently works with:**
-- Domestic and international ACH files including returns.
+**Works with:**
+- Domestic ACH files
+- International (IAT) files, including their addenda records
+- Returns
+- NOCs
+
+**Also available:**
+- File summary of debit credit totals and entries
+- File validation with error detection, explanation and resolution help
+- On demand help for each ACH field, description, NACHA field requirements
+- Easy copy of field contents on click
+- Search with navigation
+- File anonymization
+
+**Additionally:**
+- Fed cutoff times tool
+- Timezone converter
+- ACH database of constants
+
+### ISO 20022 message tool (beta)
+Validates ISO 20022 XML messages against their official schema and parses them into a readable view of their fields. Supports `camt.052` / `camt.053`.
+
+**Additionally:**
+- ISO20022 constants database
 
 
 # Disclaimer
-I take no responsibility for the correctness of the parsing. While I try my best to validate it, mistakes happen
+I take no responsibility for the correctness of the parsing or validation. While I try my best to get it right, mistakes happen.
